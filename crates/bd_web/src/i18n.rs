@@ -1,0 +1,93 @@
+//! Korean / English UI strings.
+
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum Lang {
+    En,
+    Ko,
+}
+
+const TABLE: &[(&str, &str, &str)] = &[
+    ("nogl", "WebGL2 is not available in this browser. The numbers, checks and plots still work.", "이 브라우저에서는 WebGL2를 쓸 수 없습니다. 수치, 검사, 그래프는 그대로 동작합니다."),
+    ("b_tension", "Tension", "장력"),
+    ("b_defl", "Deflect", "변형"),
+    ("b_force", "Forces", "하중"),
+    ("b_dims", "Dims", "치수"),
+    ("t_play", "Play / pause animation", "애니메이션 재생 / 정지"),
+    ("t_speed", "Animation speed (1× = motor at 60 rpm)", "애니메이션 속도 (1× = 모터 60 rpm)"),
+    ("t_time", "Scrub time", "시간 이동"),
+    ("t_tension", "Colour belt by tension (tight red, slack blue)", "장력으로 벨트 색칠 (긴장측 빨강, 이완측 파랑)"),
+    ("t_defl", "Exaggerate span sag and output deflection under load", "부하 시 스팬 처짐과 출력 변형을 과장 표시"),
+    ("t_force", "Show shaft load arrows", "축 하중 화살표 표시"),
+    ("t_dims", "Show dimension labels", "치수 라벨 표시"),
+    ("t_view", "Camera preset", "카메라 프리셋"),
+    ("t_lang", "Language", "언어"),
+    ("t_panel", "Show / hide settings", "설정 보이기 / 숨기기"),
+    ("v_persp", "Perspective", "원근"),
+    ("v_front", "Front", "정면"),
+    ("v_side", "Side", "측면"),
+    ("v_close", "Pulley close-up", "풀리 확대"),
+    ("hint", "Example 2-stage leg drive loaded. Drag to orbit, right-drag to pan, wheel to zoom, double-click to reset. Drag a driven pulley to change the centre distance; drag the output rim to load it.", "2단 다리 관절 예제를 불러왔습니다. 드래그로 회전, 오른쪽 드래그로 이동, 휠로 확대, 더블클릭으로 초기화. 피동 풀리를 끌면 축간 거리가, 출력 풀리 테두리를 끌면 부하가 바뀝니다."),
+    ("c_drive", "Drive", "구동"),
+    ("c_stage1", "Stage 1", "1단"),
+    ("c_stage2", "Stage 2", "2단"),
+    ("c_checks", "Checks", "검사"),
+    ("c_plots", "Plots", "그래프"),
+    ("c_search", "Find reductions", "감속비 찾기"),
+    ("l_stages", "Stages", "단수"),
+    ("l_width", "Belt width b (mm)", "벨트 폭 b (mm)"),
+    ("l_mt", "Motor torque (N·m)", "모터 토크 (N·m)"),
+    ("l_rpm", "Motor max speed (rpm)", "모터 최고속 (rpm)"),
+    ("l_ot", "Output peak torque (N·m)", "출력 피크 토크 (N·m)"),
+    ("l_pf", "Pretension factor", "초기장력 계수"),
+    ("l_sf", "Service factor", "사용 계수"),
+    ("l_z1", "Driver teeth z1", "구동 잇수 z1"),
+    ("l_z2", "Driven teeth z2", "피동 잇수 z2"),
+    ("l_c", "Target centre distance C (mm)", "목표 축간 거리 C (mm)"),
+    ("p_k", "Output stiffness (N·m/rad, orange) and deflection (arcmin, blue) vs belt width", "벨트 폭에 따른 출력 강성 (N·m/rad, 주황)과 변형 (arcmin, 파랑)"),
+    ("p_t", "Last-stage T1 / T2 (N) vs output torque; dashed: T2 = 0 jump limit", "출력 토크에 따른 마지막 단 T1 / T2 (N); 점선: T2 = 0 이빨 뜀 한계"),
+    ("l_sratio", "Target total ratio", "목표 총 감속비"),
+    ("l_stol", "Tolerance (%)", "허용 오차 (%)"),
+    ("b_search", "Search", "검색"),
+    ("s_none", "No passing combination. Try more tolerance, a wider profile or 2 stages.", "통과하는 조합이 없습니다. 허용 오차를 늘리거나 다른 프로파일, 2단을 시도하세요."),
+    ("s_found", "Click a row to load it.", "행을 클릭하면 불러옵니다."),
+    ("h_teeth", "teeth", "잇수"),
+    ("h_ratio", "ratio", "비"),
+    ("h_width", "b", "폭"),
+    ("h_pkg", "length", "길이"),
+    ("disclaimer", "Educational estimates with generic typical values — validate with the belt maker's data and real tests before trusting a robot with it.", "일반적인 대표값을 쓴 교육용 추정치입니다 — 로봇에 쓰기 전에 벨트 제조사 자료와 실제 시험으로 검증하세요."),
+    // HUD
+    ("u_ratio", "Total ratio", "총 감속비"),
+    ("u_belt", "Belt", "벨트"),
+    ("u_c", "Real C", "실제 C"),
+    ("u_mesh", "Teeth in mesh", "물림 잇수"),
+    ("u_t12", "T1 / T2", "T1 / T2"),
+    ("u_width", "Width need / chosen", "필요 / 선택 폭"),
+    ("u_freq", "Span frequency", "스팬 진동수"),
+    ("u_k", "Output stiffness", "출력 강성"),
+    ("u_defl", "Deflection", "변형"),
+    ("u_shaft", "Shaft load", "축 하중"),
+    ("u_load", "Load", "부하"),
+    ("st_ok", "Overall: OK", "종합: 정상"),
+    ("st_warn", "Overall: warning", "종합: 주의"),
+    ("st_fail", "Overall: fail", "종합: 불가"),
+    ("ok", "OK", "정상"),
+    ("warn", "warn", "주의"),
+    ("fail", "fail", "불가"),
+    // checks
+    ("k_geo", "centre distance {v} mm (pulleys need ≥ {l} mm)", "축간 거리 {v} mm (풀리 간섭 없이 ≥ {l} mm 필요)"),
+    ("k_zmin", "small pulley {v} T (recommended ≥ {l} T)", "작은 풀리 {v} T (권장 ≥ {l} T)"),
+    ("k_mesh", "teeth in mesh {v} (want ≥ {l})", "물림 잇수 {v} (≥ {l} 권장)"),
+    ("k_slack", "slack side T2 = {v} N (≤ 0: tooth jump risk)", "이완측 T2 = {v} N (≤ 0이면 이빨 뜀 위험)"),
+    ("k_width", "width needed {v} mm (chosen {l} mm)", "필요 폭 {v} mm (선택 {l} mm)"),
+    ("k_speed", "belt speed {v} m/s (limit {l} m/s)", "벨트 속도 {v} m/s (한계 {l} m/s)"),
+    ("k_motor", "motor × ratio = {v} N·m (need {l} N·m)", "모터 × 감속비 = {v} N·m (필요 {l} N·m)"),
+    ("drive", "drive", "전체"),
+];
+
+pub fn t(lang: Lang, key: &str) -> &'static str {
+    TABLE
+        .iter()
+        .find(|e| e.0 == key)
+        .map(|e| if lang == Lang::Ko { e.2 } else { e.1 })
+        .unwrap_or("?")
+}

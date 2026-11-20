@@ -418,7 +418,7 @@ pub fn search(base: &Input, target: f64, tol: f64, n_stages: usize, limit: usize
     let p = pr.pitch;
     let hint = |i: usize| base.stages.get(i).map_or(0.0, |s| s.c);
     let mut out: Vec<Candidate> = vec![];
-    let mut try_stages = |stages: Vec<StageIn>, out: &mut Vec<Candidate>| {
+    let try_stages = |stages: Vec<StageIn>, out: &mut Vec<Candidate>| {
         for &w in WIDTHS.iter() {
             let inp = Input { stages: stages.clone(), width: w, ..base.clone() };
             let o = evaluate(&inp);
