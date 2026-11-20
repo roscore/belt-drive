@@ -286,6 +286,29 @@ pub fn prism(inner: &[[f32; 2]], outer: &[[f32; 2]], h: f32) -> Geo {
     g
 }
 
+/// Bake many transformed, coloured copies of meshes into one non-indexed mesh (one draw call),
+/// e.g. hundreds of small blocks that move every frame. Normals use the inverse transpose, so
+/// non-uniform scales stay correctly lit.
+pub fn batch(parts: &[(&Geo, M4, V)]) -> Geo {
+    let mut g = Geo::default();
+    for (src, m, col) in parts {
+        let inv = math::invert(m).unwrap_or(math::IDENTITY);
+        // Inverse transpose of the upper 3×3 applied to n: (M⁻¹)ᵀ n, i.e. row k of M⁻¹ dotted with n.
+        let nt = |n: &[f32]| math::norm(std::array::from_fn(|k| inv[k * 4] * n[0] + inv[k * 4 + 1] * n[1] + inv[k * 4 + 2] * n[2]));
+        let n_verts = src.pos.len() / 3;
+        let order: Vec<usize> = if src.idx.is_empty() { (0..n_verts).collect() } else { src.idx.iter().map(|&i| i as usize).collect() };
+        for i in order {
+            let p = &src.pos[i * 3..i * 3 + 3];
+            g.pos.extend(math::transform(m, [p[0], p[1], p[2]]));
+            g.nrm.extend(if src.nrm.is_empty() { [0.0, 1.0, 0.0] } else { nt(&src.nrm[i * 3..i * 3 + 3]) });
+            let c = if src.col.is_empty() { [1.0; 3] } else { [src.col[i * 3], src.col[i * 3 + 1], src.col[i * 3 + 2]] };
+            g.col.extend([c[0] * col[0], c[1] * col[1], c[2] * col[2]]);
+        }
+    }
+    g.lines = parts.first().is_some_and(|p| p.0.lines);
+    g
+}
+
 /// Line segments from point pairs.
 pub fn lines(pts: &[V]) -> Geo {
     Geo { pos: pts.iter().flatten().copied().collect(), lines: true, ..Geo::default() }
@@ -560,6 +583,25 @@ mod tests {
             let wind = math::cross(math::sub(v(1), v(0)), math::sub(v(2), v(0)));
             assert!(math::dot(n, math::sub(v(0), c)) > 0.0);
             assert!(math::dot(wind, n) > 0.0, "triangle {t}");
+        }
+    }
+
+    #[test]
+    fn batch_transforms_and_colours() {
+        let c = cube();
+        let m = math::basis([1., 0., 0.], [0., 1., 0.], [0., 0., 1.], [2.0, 1.0, 1.0], [5.0, 0.0, 0.0]);
+        let g = batch(&[(&c, math::IDENTITY, [1.0, 0.0, 0.0]), (&c, m, [0.0, 0.0, 1.0])]);
+        assert!(g.idx.is_empty() && !g.lines);
+        assert_eq!(g.pos.len(), 2 * c.idx.len() * 3);
+        assert_eq!(g.col.len(), g.pos.len());
+        assert_eq!(g.nrm.len(), g.pos.len());
+        let half = g.pos.len() / 2;
+        // Second copy is stretched to x 4..6 and coloured blue.
+        assert!(g.pos[half..].chunks(3).all(|p| (p[0] - 5.0).abs() <= 1.0 + 1e-6));
+        assert!(g.pos[half..].chunks(3).any(|p| (p[0] - 6.0).abs() < 1e-6));
+        assert_eq!(&g.col[half..half + 3], &[0.0, 0.0, 1.0]);
+        for n in g.nrm.chunks(3) {
+            assert!((n[0] * n[0] + n[1] * n[1] + n[2] * n[2] - 1.0).abs() < 1e-5);
         }
     }
 
