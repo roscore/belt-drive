@@ -143,6 +143,7 @@ impl App {
             format!("{:.0} / {:.0} N", s.ti + te / 2.0, s.ti - te / 2.0)
         }));
         row("u_width", j(&|s| format!("{:.1} / {:.0} mm", s.width_req, self.inp.width)));
+        row("u_rpm", format!("{:.0} / {:.0}", self.inp.motor_rpm, o.motor_rpm_limit));
         row("u_freq", j(&|s| format!("{:.0} Hz", s.freq)));
         row("u_k", format!("{:.0} N·m/rad", o.k_out));
         row("u_defl", format!("{:.1} arcmin", o.defl_arcmin * lam));
@@ -245,6 +246,10 @@ impl App {
                 if let Some(e) = list.item(i).and_then(|n| n.dyn_into::<Element>().ok()) {
                     let k = e.get_attribute("data-tipk").unwrap_or_default();
                     let _ = e.set_attribute("data-tip", t(l, &k));
+                    // CSS ::after tooltips do not render on form controls; give those a native title.
+                    if matches!(e.tag_name().as_str(), "SELECT" | "INPUT") {
+                        let _ = e.set_attribute("title", t(l, &k));
+                    }
                     let _ = e.set_attribute("aria-label", t(l, &k));
                 }
             }
@@ -328,6 +333,7 @@ impl App {
         let mut h = String::new();
         for (p, text) in sc.labels() {
             if let Some((x, y)) = sc.project(p) {
+                let text = text.replace(" belt ", &format!(" {} ", t(self.lang, "belt")));
                 h.push_str(&format!("<div class=\"dim\" style=\"left:{x:.0}px;top:{y:.0}px\">{}</div>", esc(&text)));
             }
         }

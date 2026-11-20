@@ -62,6 +62,8 @@ const TABLE: &[(&str, &str, &str)] = &[
     ("u_mesh", "Teeth in mesh", "물림 잇수"),
     ("u_t12", "T1 / T2", "T1 / T2"),
     ("u_width", "Width need / chosen", "필요 / 선택 폭"),
+    ("u_rpm", "Motor rpm / limit", "모터 rpm / 한계"),
+    ("belt", "belt", "벨트"),
     ("u_freq", "Span frequency", "스팬 진동수"),
     ("u_k", "Output stiffness", "출력 강성"),
     ("u_defl", "Deflection", "변형"),

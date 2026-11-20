@@ -29,7 +29,7 @@ html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
 button, select, input { font: inherit; color: inherit; }
 #stage { position: fixed; inset: 0; }
 #view { width: 100%; height: 100%; display: block; touch-action: none; outline: none; }
-#nogl { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; padding: 24px; text-align: center; color: var(--muted); }
+#nogl { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; padding: 24px 376px 24px 24px; text-align: center; color: var(--muted); }
 #labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .dim { position: absolute; transform: translate(-50%, -50%); font: 12px var(--mono); padding: 1px 5px; border-radius: 4px; background: rgba(0,0,0,0.55); color: #fff; white-space: nowrap; }
 #toolbar { position: absolute; top: 12px; left: 12px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; max-width: calc(100% - 24px); padding: 6px; border-radius: var(--radius); background: var(--panel); border: 1px solid var(--line); backdrop-filter: blur(6px); }
@@ -81,6 +81,7 @@ canvas.plot { width: 100%; height: 170px; display: block; margin-top: 6px; borde
   #toolbar select { height: 28px; font-size: 13px; }
   #time { width: 70px; }
   #stage { bottom: 42vh; }
+  #nogl { padding: 24px; }
   #panel { position: fixed; top: auto; left: 0; right: 0; bottom: 0; width: auto; height: 42vh; padding: 8px; background: var(--panel); border-top: 1px solid var(--line); border-radius: 14px 14px 0 0; }
   #hud { left: 6px; right: auto; bottom: 6px; padding: 5px 8px; font-size: 10px; line-height: 1.35; grid-template-columns: auto auto; gap: 0 8px; max-height: calc(58vh - 110px); overflow: auto; pointer-events: auto; cursor: pointer; }
   #hud:not(.open) > :nth-child(n+3):not(.st) { display: none; }

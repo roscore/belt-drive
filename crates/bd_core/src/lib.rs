@@ -133,7 +133,8 @@ pub struct StageOut {
     pub ti: f64,
     pub t1: f64,
     pub t2: f64,
-    /// Belt speed at max motor rpm (m/s) and the motor rpm that reaches the profile limit.
+    /// Belt speed at max motor rpm (m/s) and the rpm of this stage's driver that reaches the
+    /// profile's belt-speed limit.
     pub speed: f64,
     pub rpm_limit: f64,
     pub width_req: f64,
@@ -157,6 +158,8 @@ pub struct Output {
     /// Max output speed (rpm) and motor torque × ratio (N·m).
     pub out_rpm: f64,
     pub out_capacity: f64,
+    /// Highest motor speed (rpm) before any stage's belt exceeds the profile speed limit.
+    pub motor_rpm_limit: f64,
     /// Overall package length along the drive (mm).
     pub package: f64,
     pub checks: Vec<Check>,
@@ -356,6 +359,12 @@ pub fn evaluate(inp: &Input) -> Output {
         compliance += if s.k_rot > 0.0 { 1.0 / (s.k_rot * later * later) } else { f64::INFINITY };
         later *= s.ratio;
     }
+    let mut before = 1.0;
+    let mut motor_rpm_limit = f64::INFINITY;
+    for s in &stages {
+        motor_rpm_limit = motor_rpm_limit.min(s.rpm_limit * before);
+        before *= s.ratio;
+    }
     let k_out = if compliance > 0.0 { 1.0 / compliance } else { 0.0 };
     let defl = if k_out > 0.0 { load / k_out } else { f64::INFINITY };
     let status = checks.iter().fold(Status::Ok, |a, c| worst(a, c.status));
@@ -367,6 +376,7 @@ pub fn evaluate(inp: &Input) -> Output {
         defl_arcmin: defl.to_degrees() * 60.0,
         out_rpm: rpm,
         out_capacity: capacity,
+        motor_rpm_limit,
         package: package_end - package_start,
         checks,
         status,
@@ -538,6 +548,7 @@ mod tests {
         close(f, (50.0f64 / 0.03).sqrt() / 0.2, 1e-9);
     }
 
+
     #[test]
     fn stiffness_doubles_with_width() {
         for stages in [vec![StageIn { z1: 20, z2: 60, c: 60.0 }], Input::default().stages] {
@@ -571,6 +582,13 @@ mod tests {
 
     #[test]
     fn search_results_pass_and_are_sorted() {
+        // The first-run example itself passes every check, and its motor rpm limit is the
+        // tightest stage limit reflected through the earlier ratios.
+        let o = evaluate(&Input::default());
+        assert_eq!(o.status, Status::Ok);
+        let (a, b) = (o.stages[0], o.stages[1]);
+        close(a.rpm_limit, 40.0 * 60.0 / (PI * a.d1 / 1000.0), 1e-6);
+        close(o.motor_rpm_limit, a.rpm_limit.min(b.rpm_limit * a.ratio), 1e-9);
         for stages in [1, 2] {
             // One stage of 4:1 delivers 1.4 N·m from the default motor; ask for 1.2 N·m.
             let base = Input { out_torque: if stages == 1 { 1.2 } else { 3.0 }, ..Input::default() };
@@ -589,9 +607,4 @@ mod tests {
         }
     }
 
-    #[test]
-    fn default_example_is_ok() {
-        let o = evaluate(&Input::default());
-        assert_eq!(o.status, Status::Ok, "{:#?}", o.checks);
-    }
 }
