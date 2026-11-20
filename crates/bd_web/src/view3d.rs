@@ -108,7 +108,8 @@ fn pulley_geo(z: u32, pr: &Profile, width: f32) -> Geo {
     // Flanges on both faces.
     for y0 in [-0.8, h] {
         let n = 48;
-        let f = gl::prism(&circle(bore, n), &circle(ro + 1.6, n), 0.8);
+        // Ring flanges, so the toothed face stays visible.
+        let f = gl::prism(&circle((ri - 1.2).max(bore + 0.5), n), &circle(ro + 1.6, n), 0.8);
         for (i, v) in f.pos.iter().enumerate() {
             g.pos.push(if i % 3 == 1 { v + y0 } else { *v });
         }
@@ -408,7 +409,9 @@ impl Scene {
         let o = self.cam.cur;
         let eye = o.eye();
         let view = math::look_at(eye, o.target, [0.0, 1.0, 0.0]);
-        let proj = math::perspective(0.8, aspect, (o.dist * 0.02).max(0.01), o.dist * 30.0 + 50.0);
+        // Widen the vertical field of view on portrait screens so the drive still fits across.
+        let fovy = if aspect < 1.3 { 2.0 * ((0.4f32).tan() * 1.3 / aspect).atan() } else { 0.8 };
+        let proj = math::perspective(fovy, aspect, (o.dist * 0.02).max(0.01), o.dist * 30.0 + 50.0);
         self.vp = math::mul(&proj, &view);
         self.r.begin(&view, &proj, eye, [0, 0, w, h]);
         if self.belt.is_none() {
@@ -462,9 +465,13 @@ impl Scene {
                     continue;
                 }
                 let d = [f[0] / mag * sign, f[1] / mag * sign, 0.0];
-                let len = 12.0 + 40.0 * mag / fmax;
-                let m = math::basis([d[1], -d[0], 0.0], d, [0.0, 0.0, 1.0], [3.0 * S, len * S, 3.0 * S], [x * S, self.height * S, (s.z + self.width / 2.0 + 6.0) * S]);
-                self.r.draw(&self.arrow, &m, Paint::lit([1.0, 0.75, 0.1, 1.0]));
+                let size = s.r1.max(s.r2);
+                let len = size * (0.5 + 1.0 * mag / fmax);
+                let w = (size * 0.12).clamp(1.5, 5.0);
+                let m = math::basis([d[1], -d[0], 0.0], d, [0.0, 0.0, 1.0], [w * S, len * S, w * S], [x * S, self.height * S, (s.z + self.width / 2.0 + 6.0) * S]);
+                let mut paint = Paint::lit([1.0, 0.75, 0.1, 1.0]);
+                paint.glow = 0.15;
+                self.r.draw(&self.arrow, &m, paint);
             }
         }
     }

@@ -448,6 +448,13 @@ fn wire_inputs(app: &Shared, doc: &Document) {
         });
     }
     {
+        // Mobile: tap the HUD to expand / collapse it.
+        let d = doc.clone();
+        on(&el(doc, "hud"), "click", move |_: web_sys::Event| {
+            let _ = el(&d, "hud").class_list().toggle("open");
+        });
+    }
+    {
         let d = doc.clone();
         on(&el(doc, "hint-x"), "click", move |_: web_sys::Event| {
             let _ = el(&d, "hint").class_list().add_1("hidden");
